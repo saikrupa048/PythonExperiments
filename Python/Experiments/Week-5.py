@@ -1,15 +1,7 @@
-events = {}
-types = set()
-logs = []
+import random
 
-eid = input("Enter ID: ")
-name = input("Enter Name: ")
-etype = input("Enter Type: ")
+def generate_number():
+    return random.randint(1, 10)
 
-events[eid] = {"name": name, "type": etype}
-types.add(etype)
-logs.append((name, "Added"))
-
-print(events)
-print(types)
-print(logs)
+num = generate_number()
+print("Random number:", num)
