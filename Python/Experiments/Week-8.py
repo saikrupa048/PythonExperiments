@@ -1,9 +1,8 @@
-import json
+import random
 
-data = {"event": "Workshop"}
+words = ["python", "game", "arcade"]
+word = random.choice(words)
 
-with open("data.json", "w") as f:
-    json.dump(data, f)
+guessed = ["_"] * len(word)
 
-with open("data.json", "r") as f:
-    print(json.load(f))
+print(" ".join(guessed))
