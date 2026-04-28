@@ -1,180 +1,174 @@
-import json
-import datetime
-import pandas as pd
-import matplotlib.pyplot as plt
+import random
+import time
 
-# =========================
-# MODELS
-# =========================
-
-class Event:
-    def __init__(self, eid, title, date, start, end, dept, etype):
-        self.eid = eid
-        self.title = title
-        self.date = date
-        self.start = start
-        self.end = end
-        self.dept = dept
-        self.etype = etype
-
-    def to_dict(self):
-        return self.__dict__
+# ---------------- GLOBAL VARIABLES ----------------
+score = 0
+games_played = 0
+games_won = 0
 
 
-class Room:
-    def __init__(self, rid, capacity, features):
-        self.rid = rid
-        self.capacity = capacity
-        self.features = features
-
-    def to_dict(self):
-        return self.__dict__
+# ---------------- UTILITY FUNCTIONS ----------------
+def slow_print(text):
+    for char in text:
+        print(char, end='', flush=True)
+        time.sleep(0.01)
+    print()
 
 
-class Booking:
-    def __init__(self, event, room):
-        self.event = event
-        self.room = room
+def line():
+    print("-" * 40)
 
-# =========================
-# DATA STORAGE
-# =========================
 
-events = {}
-rooms = {}
-bookings = []
+# ---------------- GUESSING GAME ----------------
+def guessing_game():
+    global score, games_played, games_won
 
-# =========================
-# FILE HANDLING
-# =========================
+    line()
+    slow_print("🎯 GUESSING GAME")
 
-def save_data():
-    with open("events.json", "w") as f:
-        json.dump({k: v.to_dict() for k, v in events.items()}, f)
+    print("Select Difficulty:")
+    print("1. Easy (1-10)")
+    print("2. Medium (1-50)")
+    print("3. Hard (1-100)")
 
-def load_data():
-    global events
-    try:
-        with open("events.json", "r") as f:
-            data = json.load(f)
-            for k, v in data.items():
-                events[k] = Event(**v)
-    except:
-        pass
+    choice = input("Enter choice: ")
 
-# =========================
-# CORE FUNCTIONS
-# =========================
+    if choice == "1":
+        low, high, attempts = 1, 10, 5
+    elif choice == "2":
+        low, high, attempts = 1, 50, 7
+    else:
+        low, high, attempts = 1, 100, 10
 
-def add_room():
-    rid = input("Room ID: ")
-    cap = int(input("Capacity: "))
-    features = set(input("Features (comma separated): ").split(","))
+    number = random.randint(low, high)
+    games_played += 1
 
-    rooms[rid] = Room(rid, cap, features)
-    print("✅ Room added")
+    while attempts > 0:
+        try:
+            guess = int(input(f"Guess number ({low}-{high}): "))
+        except:
+            print("Invalid input! Enter a number.")
+            continue
 
-def add_event():
-    eid = input("Event ID: ")
-    title = input("Title: ")
-    date = input("Date (YYYY-MM-DD): ")
-    start = input("Start Time (HH:MM): ")
-    end = input("End Time (HH:MM): ")
-    dept = input("Department: ")
-    etype = input("Type: ")
+        if guess == number:
+            slow_print("🎉 Correct! You win!")
+            score += 10 * attempts
+            games_won += 1
+            return
+        elif guess < number:
+            print("📉 Too low!")
+        else:
+            print("📈 Too high!")
 
-    events[eid] = Event(eid, title, date, start, end, dept, etype)
-    print("✅ Event added")
+        attempts -= 1
+        print("Attempts left:", attempts)
 
-def check_conflict(room_id, date, start, end):
-    for b in bookings:
-        if b.room.rid == room_id and b.event.date == date:
-            if (start < b.event.end and end > b.event.start):
-                return True
-    return False
+    slow_print(f"💀 You lost! Number was {number}")
 
-def book_room():
-    eid = input("Enter Event ID: ")
-    rid = input("Enter Room ID: ")
 
-    if eid not in events or rid not in rooms:
-        print("❌ Invalid ID")
-        return
+# ---------------- HANGMAN GAME ----------------
+def hangman():
+    global score, games_played, games_won
 
-    event = events[eid]
+    categories = {
+        "Animals": ["tiger", "lion", "elephant", "zebra"],
+        "Fruits": ["apple", "banana", "mango", "orange"],
+        "Tech": ["python", "computer", "keyboard", "internet"]
+    }
 
-    if check_conflict(rid, event.date, event.start, event.end):
-        print("❌ Conflict detected!")
-        return
+    line()
+    slow_print("🪢 HANGMAN GAME")
 
-    bookings.append(Booking(event, rooms[rid]))
-    print("✅ Room booked successfully")
+    print("Categories:", ", ".join(categories.keys()))
+    cat = input("Choose category: ").capitalize()
 
-def view_bookings():
-    for b in bookings:
-        print(f"{b.event.title} -> {b.room.rid} ({b.event.start}-{b.event.end})")
+    if cat not in categories:
+        cat = random.choice(list(categories.keys()))
+        print("Random category selected:", cat)
 
-# =========================
-# ANALYTICS
-# =========================
+    word = random.choice(categories[cat])
+    guessed = ["_"] * len(word)
+    attempts = 6
+    guessed_letters = []
 
-def analytics():
-    if not bookings:
-        print("No data")
-        return
+    games_played += 1
 
-    data = []
-    for b in bookings:
-        data.append({
-            "Room": b.room.rid,
-            "Type": b.event.etype
-        })
+    while attempts > 0:
+        line()
+        print("Word:", " ".join(guessed))
+        print("Guessed letters:", guessed_letters)
+        print("Attempts left:", attempts)
 
-    df = pd.DataFrame(data)
+        letter = input("Enter letter: ").lower()
 
-    print("\n📊 Event Data:")
-    print(df)
+        if len(letter) != 1 or not letter.isalpha():
+            print("Enter a single valid letter!")
+            continue
 
-    df["Room"].value_counts().plot(kind="bar")
-    plt.title("Room Usage")
-    plt.show()
+        if letter in guessed_letters:
+            print("Already guessed!")
+            continue
 
-# =========================
-# MENU
-# =========================
+        guessed_letters.append(letter)
 
-def menu():
-    load_data()
+        if letter in word:
+            for i in range(len(word)):
+                if word[i] == letter:
+                    guessed[i] = letter
+            print("✅ Correct guess!")
+        else:
+            attempts -= 1
+            print("❌ Wrong guess!")
 
+        if "_" not in guessed:
+            slow_print(f"🎉 You guessed the word: {word}")
+            score += 15 + attempts * 2
+            games_won += 1
+            return
+
+    slow_print(f"💀 You lost! Word was: {word}")
+
+
+# ---------------- STATS ----------------
+def show_stats():
+    line()
+    print("📊 GAME STATISTICS")
+    print("Games Played:", games_played)
+    print("Games Won:", games_won)
+    print("Total Score:", score)
+
+    if games_played > 0:
+        win_rate = (games_won / games_played) * 100
+        print(f"Win Rate: {win_rate:.2f}%")
+    else:
+        print("Win Rate: 0%")
+
+
+# ---------------- MAIN ARCADE ----------------
+def arcade():
     while True:
-        print("\n==== SESS MENU ====")
-        print("1. Add Room")
-        print("2. Add Event")
-        print("3. Book Room")
-        print("4. View Bookings")
-        print("5. Analytics")
-        print("6. Exit")
+        line()
+        print("🎮 MINI ARCADE")
+        print("1. Guessing Game")
+        print("2. Hangman")
+        print("3. View Stats")
+        print("4. Exit")
 
-        ch = input("Enter choice: ")
+        choice = input("Enter choice: ")
 
-        if ch == "1":
-            add_room()
-        elif ch == "2":
-            add_event()
-        elif ch == "3":
-            book_room()
-        elif ch == "4":
-            view_bookings()
-        elif ch == "5":
-            analytics()
-        elif ch == "6":
-            save_data()
+        if choice == "1":
+            guessing_game()
+        elif choice == "2":
+            hangman()
+        elif choice == "3":
+            show_stats()
+        elif choice == "4":
+            slow_print("👋 Thanks for playing!")
             break
         else:
-            print("Invalid choice!")
+            print("Invalid choice! Try again.")
 
-# =========================
-# RUN PROGRAM
-# =========================
 
-menu()
+# ---------------- RUN PROGRAM ----------------
+if __name__ == "__main__":
+    arcade()
