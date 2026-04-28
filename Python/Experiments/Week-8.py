@@ -1,8 +1,4 @@
-import random
-
-words = ["python", "game", "arcade"]
-word = random.choice(words)
-
+word = "python"
 guessed = ["_"] * len(word)
 
-print(" ".join(guessed))
+print("Word:", " ".join(guessed))
