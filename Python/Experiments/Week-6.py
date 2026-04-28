@@ -1,10 +1,20 @@
-class Event:
-    def __init__(self, name, date):
-        self.name = name
-        self.date = date
+import random
 
-    def display(self):
-        print(self.name, self.date)
+def guessing_game():
+    number = random.randint(1, 10)
+    attempts = 5
 
-e = Event("Workshop", "2025-01-01")
-e.display()
+    while attempts > 0:
+        guess = int(input("Guess number (1-10): "))
+
+        if guess == number:
+            print("Correct!")
+            return
+        elif guess < number:
+            print("Too low")
+        else:
+            print("Too high")
+
+        attempts -= 1
+
+    print("You lost! Number was", number)
