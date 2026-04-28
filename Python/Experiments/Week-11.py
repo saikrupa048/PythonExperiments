@@ -1,5 +1,7 @@
-try:
-    x = int(input("Enter number: "))
-    print(10 / x)
-except:
-    print("Error occurred!")
+score = 0
+
+def add_score(points):
+    global score
+    score += points
+
+print("Score:", score)
